@@ -44,10 +44,16 @@ try
 	var secretsPath = configuration["SmsSettings:SecretPath"] ??
 		throw new InvalidOperationException("Secrets path must be configured in appsettings.json");
 
-	var secret_content = "";
+	var etxtApiKey = "";
+	var etxtApiSecret = "";
+	var apiKey = "";
 	try
 	{
-		secret_content = File.ReadAllText(secretsPath);
+		var secret_content = File.ReadAllText(secretsPath).Split("\n");
+		var getSecretField = (string key) => secret_content.Where(line => line.StartsWith(key + ":")).Select(line => line.Split(":")[1]).Aggregate((a, b) => a);
+		etxtApiKey = getSecretField("ETXT_KEY");
+		etxtApiSecret = getSecretField("ETXT_SECRET");
+		apiKey = getSecretField("API_KEY");
 	}
 	catch (Exception ex)
 	{
@@ -87,7 +93,7 @@ try
 		ISmsProvider provider = smsProvider switch
 		{
 			"diafaan" => new DiafaanSmsProvider(),
-			"etxt" => new ETxtSmsProvider(),
+			"etxt" => new ETxtSmsProvider(etxtApiKey, etxtApiSecret),
 			_ => throw new InvalidOperationException($"Unsupported SMS provider: {smsProvider}")
 		};
 
@@ -110,7 +116,6 @@ try
 	var smsGatewayApi = app.MapGroup("/smsgateway")
 		.AddEndpointFilter(async (context, next) =>
 		{
-			Console.WriteLine("hi");
 			var httpContext = context.HttpContext;
 
 			if (httpContext.Request.Host.Host.ToLower() is "localhost" or "127.0.0.1")
