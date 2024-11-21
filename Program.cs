@@ -69,7 +69,6 @@ try
 	  // Register SMS provider
 	  builder.Services.AddSingleton<ISmsProvider>(services =>
 	  {
-			Console.WriteLine("stuff");
 			ISmsProvider provider = smsProvider switch
 			{
 				  "diafaan" => new DiafaanSmsProvider(),
@@ -96,6 +95,7 @@ try
 	  var smsGatewayApi = app.MapGroup("/smsgateway")
 		  .AddEndpointFilter(async (context, next) =>
 		  {
+				Console.WriteLine("hi");
 				var httpContext = context.HttpContext;
 
 				if (httpContext.Request.Host.Host.ToLower() is "localhost" or "127.0.0.1")
