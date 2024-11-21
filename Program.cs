@@ -70,7 +70,6 @@ try
     {
         ISmsProvider provider = smsProvider switch
         {
-            "justremotephone" => new JustRemotePhoneSmsProvider(),
             "diafaan" => new DiafaanSmsProvider(),
             "etxt" => new ETxtSmsProvider(),
             _ => throw new InvalidOperationException($"Unsupported SMS provider: {smsProvider}")
@@ -179,12 +178,7 @@ try
     {
         try
         { 
-            if (smsProvider is not JustRemotePhoneSmsProvider provider)
-            {
-                return Results.BadRequest("Unsupported SMS provider");
-            }
-
-            var messages = await provider.GetReceivedMessages();
+            var messages = await smsProvider.GetReceivedMessages();
             var json = JsonSerializer.Serialize(messages, AppJsonSerializerContext.Default.IEnumerableReceiveSmsRequest);
 
             return Results.Ok(messages);
@@ -209,12 +203,7 @@ try
     {
         try
         {
-            if (smsProvider is not JustRemotePhoneSmsProvider provider)
-            {
-                return Results.BadRequest("Unsupported SMS provider");
-            }
-
-            var statuses = await provider.GetRecentMessageStatuses();
+            var statuses = await smsProvider.GetRecentMessageStatuses();
             var json = JsonSerializer.Serialize(statuses, AppJsonSerializerContext.Default.IEnumerableMessageStatusRecord);
 
             return Results.Ok(statuses);
@@ -243,12 +232,7 @@ try
             return Results.BadRequest("Invalid message ID format");
         }
 
-        if (smsProvider is not JustRemotePhoneSmsProvider provider)
-        {
-            return Results.BadRequest("Unsupported SMS provider");
-        }
-
-        var result = await provider.DeleteReceivedMessage(guid);
+        var result = await smsProvider.DeleteReceivedMessage(guid);
         if (result.Deleted)
         {
             return Results.Ok(result);
