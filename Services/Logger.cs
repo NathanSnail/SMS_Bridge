@@ -6,7 +6,7 @@ namespace SMS_Bridge.Services
 {
     public static class Logger
     {
-        private const string LOG_PATH = @"\\OPENDENTAL\OD Letters\od_logs";
+        private const string LOG_PATH = "/home/nathan/Documents/code/SMS_Bridge/logs"; //@"\\OPENDENTAL\OD Letters\od_logs";
 
 
         public static void Initialize()
