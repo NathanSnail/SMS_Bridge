@@ -1,4 +1,5 @@
-﻿using SMS_Bridge.Models;
+﻿using System.Text.Json;
+using SMS_Bridge.Models;
 using SMS_Bridge.Services;
 
 namespace SMS_Bridge.SmsProviders
@@ -27,6 +28,7 @@ namespace SMS_Bridge.SmsProviders
 		}
 		private IResult ResultFromMessage(HttpResponseMessage message)
 		{
+			Console.WriteLine(message.ToString());
 			if (message.IsSuccessStatusCode)
 			{
 				return Results.Ok();
@@ -49,8 +51,17 @@ namespace SMS_Bridge.SmsProviders
 			""";
 			var content = new StringContent(message, System.Text.Encoding.Default, "application/json");
 			var message_result = await client.PostAsync(etxt_base + "v1/messages", content);
-			var result = () => (ResultFromMessage(message_result), Guid.Empty);
-			return result.Invoke();
+			var doc = JsonDocument.Parse(await message_result.Content.ReadAsStringAsync());
+			var guid = Guid.Empty;
+			try
+			{
+				var message_id = doc.RootElement.GetProperty("messages").EnumerateArray().Aggregate((a, b) => a).GetProperty("message_id").GetString();
+				if (message_id == null) throw new Exception();
+				guid = new Guid(message_id);
+			}
+			catch (Exception) { }
+			Console.WriteLine(guid);
+			return (ResultFromMessage(message_result), guid);
 		}
 
 		public Task<SmsStatus> GetMessageStatus(Guid messageId)
